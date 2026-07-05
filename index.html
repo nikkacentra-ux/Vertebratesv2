@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vertebrates Adventure Game</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: #e0f2fe;
+            background-image: radial-gradient(#bae6fd 2px, transparent 2px);
+            background-size: 30px 30px;
+        }
+        h1, h2, h3, .title-font {
+            font-family: 'Fredoka One', cursive;
+        }
+        .btn-hover {
+            transition: all 0.2s ease-in-out;
+        }
+        .btn-hover:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .btn-hover:active {
+            transform: translateY(1px) scale(0.98);
+        }
+        
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+            20%, 40%, 60%, 80% { transform: translateX(5px); }
+        }
+        .shake-animation {
+            animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0.8); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .pop-in {
+            animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+        
+        .badge-glow {
+            box-shadow: 0 0 30px rgba(250, 204, 21, 0.8);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4 text-slate-800">
+
+    <div id="app" class="w-full max-w-3xl bg-white rounded-3xl shadow-2xl overflow-hidden pop-in relative min-h-[500px] flex flex-col">
+        <!-- Content will be dynamically injected here by JavaScript -->
+    </div>
+
+    <script>
+        // --- GAME DATA ---
+        const game1Questions = [
+            {
+                group: "Mammals 🦁",
+                category: "Body Covering",
+                question: "What is the main body covering of Mammals to help maintain their body temperature?",
+                options: ["Fur or Hair", "Feathers", "Slippery scales", "Smooth, moist skin"],
+                correctIndex: 0
+            },
+            {
+                group: "Fishes 🐟",
+                category: "Breathing Mechanism",
+                question: "How do most Fishes breathe underwater?",
+                options: ["Through lungs", "Through their skin", "Through gills", "Through a beak"],
+                correctIndex: 2
+            },
+            {
+                group: "Birds 🦅",
+                category: "Appendages",
+                question: "Which specific appendages do Birds use for movement and feeding?",
+                options: ["Fins and tails", "Wings and beaks", "Arms and legs", "Flippers"],
+                correctIndex: 1
+            },
+            {
+                group: "Amphibians 🐸",
+                category: "Reproduction",
+                question: "How do Amphibians typically reproduce?",
+                options: ["Give birth to live young", "Lay eggs on dry land in hard shells", "Reproduce by splitting", "Lay eggs in water"],
+                correctIndex: 3
+            },
+            {
+                group: "Reptiles 🦎",
+                category: "Temperature Regulation",
+                question: "How do Reptiles regulate their body temperature?",
+                options: ["Warm-blooded (keep a constant temperature)", "Cold-blooded (depend on the environment)"],
+                correctIndex: 1
+            },
+            {
+                group: "Mammals (Marsupials) 🦘",
+                category: "Reproduction",
+                question: "You are observing a kangaroo in Australia. It's a mammal known as a marsupial. How does it care for its young?",
+                options: ["Lays hard-shelled eggs in a nest", "Carries and feeds them in a pouch", "Leaves them in the ocean", "Grows them inside an egg underwater"],
+                correctIndex: 1
+            },
+            {
+                group: "Birds 🐧",
+                category: "Movement",
+                question: "An ostrich is a very large bird that cannot fly. Based on how birds are classified by movement, what does an ostrich primarily do?",
+                options: ["Swim", "Slither", "Run", "Hop"],
+                correctIndex: 2
+            },
+            {
+                group: "Amphibians 🐸",
+                category: "Breathing Mechanism",
+                question: "You find a tadpole that will grow into an adult frog. How does its breathing change as it grows?",
+                options: ["It uses lungs first, then develops gills", "It uses gills when young, then lungs and skin as an adult", "It always breathes through its skin", "It only uses lungs its whole life"],
+                correctIndex: 1
+            },
+            {
+                group: "Reptiles 🐊",
+                category: "Body Covering",
+                question: "A crocodile is resting under the sun. As a reptile, what kind of body covering protects it from drying out?",
+                options: ["Smooth, moist skin", "Thick, dry scales", "Slippery scales", "Soft fur"],
+                correctIndex: 1
+            },
+            {
+                group: "Mammals (Monotremes) 🦆",
+                category: "Reproduction",
+                question: "The platypus is a very unique mammal called a monotreme. Unlike most mammals, how does it reproduce?",
+                options: ["It gives birth to live young", "It splits into two", "It lays eggs", "It grows from a plant"],
+                correctIndex: 2
+            }
+        ];
+
+        const game2Questions = [
+            {
+                question: "I am warm-blooded, breathe through my lungs, am covered with fur or hair, and usually give birth to live young. Which group am I?",
+                options: ["Mammals", "Birds", "Reptiles", "Amphibians"],
+                correctIndex: 0
+            },
+            {
+                question: "I am cold-blooded, breathe through gills when young and lungs when I'm older, have smooth moist skin, and lay eggs in water. Which group am I?",
+                options: ["Fishes", "Reptiles", "Amphibians", "Birds"],
+                correctIndex: 2
+            },
+            {
+                question: "I am warm-blooded, breathe through lungs, covered with feathers, have wings and a beak, and I lay eggs. Which group am I?",
+                options: ["Birds", "Mammals", "Fishes", "Reptiles"],
+                correctIndex: 0
+            },
+            {
+                question: "I am cold-blooded, breathe through my lungs, covered with thick dry scales, and usually lay eggs on land. Which group am I?",
+                options: ["Amphibians", "Reptiles", "Fishes", "Mammals"],
+                correctIndex: 1
+            },
+            {
+                question: "I am cold-blooded, breathe through gills, covered with slippery scales, use fins to swim, and usually lay eggs in water. Which group am I?",
+                options: ["Birds", "Amphibians", "Reptiles", "Fishes"],
+                correctIndex: 3
+            },
+            {
+                question: "You are watching a clownfish swimming through a coral reef. It uses fins to move, breathes through gills, and has slippery scales. Which group does it belong to?",
+                options: ["Fishes", "Amphibians", "Mammals", "Reptiles"],
+                correctIndex: 0
+            },
+            {
+                question: "A scientist discovers a sea creature that gives birth to live young, feeds them with milk from mammary glands, and has fur. Even though it swims like a fish, what is it really?",
+                options: ["Fishes", "Mammals", "Reptiles", "Amphibians"],
+                correctIndex: 1
+            },
+            {
+                question: "You spot a salamander near a stream. It is cold-blooded, has smooth moist skin to help it breathe, and laid its eggs in the water. Which group is it?",
+                options: ["Reptiles", "Birds", "Amphibians", "Mammals"],
+                correctIndex: 2
+            },
+            {
+                question: "A penguin dives into the icy water to catch fish. It is warm-blooded, covered in special waterproof feathers, has a beak, and lays eggs on the ice. Which vertebrate group does it belong to?",
+                options: ["Fishes", "Birds", "Mammals", "Amphibians"],
+                correctIndex: 1
+            },
+            {
+                question: "You see an iguana eating leaves. It is cold-blooded, breathes through lungs, and has thick dry scales. Which group does this herbivore belong to?",
+                options: ["Amphibians", "Mammals", "Birds", "Reptiles"],
+                correctIndex: 3
+            }
+        ];
+
+        // --- STATE MANAGEMENT ---
+        let state = {
+            playerName: "",
+            mistakesCount: 0,
+            phase: 'START', // START, GAME1_INTRO, GAME1, GAME2_INTRO, GAME2, END
+            currentQueue: [],
+            currentIndex: 0,
+            totalQuestionsInPhase: 0,
+            isWaitingForNext: false,
+            lastAnswerCorrect: null // null, true, false
+        };
+
+        const appContainer = document.getElementById('app');
+
+        // --- RENDER FUNCTIONS ---
+        function render() {
+            appContainer.innerHTML = ''; 
+            
+            switch(state.phase) {
+                case 'START':
+                    renderStartScreen();
+                    break;
+                case 'GAME1_INTRO':
+                    renderIntroScreen("Part 1: The Characteristic Detective 🔍", 
+                                      "In this game, you will be given a vertebrate group. Your mission is to identify their correct characteristic from the choices given.<br><br>Take your time and think carefully!", 
+                                      startPhase1);
+                    break;
+                case 'GAME1':
+                case 'GAME2':
+                    renderQuestionScreen();
+                    break;
+                case 'GAME2_INTRO':
+                    renderIntroScreen("Part 2: Who Am I? ❓", 
+                                      "Great job on Part 1! Now let's do the opposite.<br><br>I will give you a list of characteristics, and you have to identify which of the 5 major vertebrate groups I am describing.", 
+                                      startPhase2);
+                    break;
+                case 'END':
+                    renderEndScreen();
+                    break;
+            }
+        }
+
+        function renderStartScreen() {
+            appContainer.innerHTML = `
+                <div class="p-8 md:p-12 flex flex-col items-center justify-center text-center h-full w-full min-h-[500px]">
+                    <div class="text-6xl mb-4">🐾</div>
+                    <h1 class="text-4xl md:text-5xl text-indigo-600 mb-2 title-font">Vertebrates Adventure</h1>
+                    <p class="text-lg text-slate-600 mb-8 max-w-md">Welcome, Grade 6 Explorer! Ready to test your knowledge on classifying and identifying vertebrates?</p>
+                    
+                    <div class="w-full max-w-sm">
+                        <label for="playerName" class="block text-left text-sm font-bold text-slate-700 mb-2">Enter your name to begin:</label>
+                        <input type="text" id="playerName" placeholder="Your Name" 
+                               class="w-full px-4 py-3 rounded-xl border-2 border-indigo-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition mb-6 text-lg">
+                        <button onclick="startGame()" class="w-full bg-indigo-500 hover:bg-indigo-600 text-white title-font text-xl py-3 px-6 rounded-xl btn-hover shadow-lg shadow-indigo-200">
+                            Start Adventure! 🚀
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            // Add enter key listener
+            setTimeout(() => {
+                const input = document.getElementById('playerName');
+                if(input) {
+                    input.focus();
+                    input.addEventListener('keypress', function (e) {
+                        if (e.key === 'Enter') startGame();
+                    });
+                }
+            }, 100);
+        }
+
+        function renderIntroScreen(title, description, nextAction) {
+            appContainer.innerHTML = `
+                <div class="p-8 md:p-12 flex flex-col items-center justify-center text-center h-full w-full min-h-[500px] pop-in">
+                    <h2 class="text-3xl md:text-4xl text-emerald-600 mb-6 title-font">${title}</h2>
+                    <p class="text-xl text-slate-700 mb-10 max-w-lg leading-relaxed">${description}</p>
+                    <button id="startPhaseBtn" class="bg-emerald-500 hover:bg-emerald-600 text-white title-font text-xl py-3 px-10 rounded-xl btn-hover shadow-lg shadow-emerald-200">
+                        Let's Go!
+                    </button>
+                </div>
+            `;
+            document.getElementById('startPhaseBtn').onclick = nextAction;
+        }
+
+        function renderQuestionScreen() {
+            const questionData = state.currentQueue[state.currentIndex];
+            const isGame1 = state.phase === 'GAME1';
+            
+            // Progress calculation
+            const progress = ((state.currentIndex) / state.currentQueue.length) * 100;
+
+            let headerHTML = '';
+            if (isGame1) {
+                headerHTML = `
+                    <div class="mb-4 inline-block bg-indigo-100 text-indigo-800 px-4 py-1 rounded-full font-bold text-sm">
+                        Category: ${questionData.category}
+                    </div>
+                    <h3 class="text-2xl md:text-3xl font-bold text-slate-800 mb-2">Group: <span class="text-indigo-600 title-font">${questionData.group}</span></h3>
+                    <p class="text-lg text-slate-600 mb-6">${questionData.question}</p>
+                `;
+            } else {
+                headerHTML = `
+                    <div class="mb-4 inline-block bg-emerald-100 text-emerald-800 px-4 py-1 rounded-full font-bold text-sm">
+                        Identify the Group
+                    </div>
+                    <p class="text-xl md:text-2xl font-bold text-slate-800 mb-6 leading-relaxed">"${questionData.question}"</p>
+                `;
+            }
+
+            let optionsHTML = '<div class="grid grid-cols-1 md:grid-cols-2 gap-4 w-full mb-8">';
+            questionData.options.forEach((opt, idx) => {
+                let btnColor = "bg-white hover:bg-slate-50 text-slate-700 border-2 border-slate-200";
+                
+                // If answer was checked, apply colors to options
+                if (state.isWaitingForNext) {
+                    if (idx === questionData.correctIndex) {
+                        btnColor = "bg-green-100 border-green-500 text-green-800 shadow-inner";
+                    } else if (idx === state.lastSelectedOption) {
+                        btnColor = "bg-red-100 border-red-500 text-red-800 shake-animation";
+                    } else {
+                        btnColor = "bg-white border-slate-200 text-slate-400 opacity-50 cursor-not-allowed";
+                    }
+                }
+
+                optionsHTML += `
+                    <button ${state.isWaitingForNext ? 'disabled' : ''} 
+                            onclick="handleAnswer(${idx})"
+                            class="w-full text-left p-4 rounded-xl font-bold text-lg transition-all flex items-center justify-between ${btnColor} ${!state.isWaitingForNext ? 'btn-hover' : ''}">
+                        <span>${opt}</span>
+                        ${state.isWaitingForNext && idx === questionData.correctIndex ? '✅' : ''}
+                        ${state.isWaitingForNext && idx === state.lastSelectedOption && idx !== questionData.correctIndex ? '❌' : ''}
+                    </button>
+                `;
+            });
+            optionsHTML += '</div>';
+
+            let feedbackHTML = '';
+            if (state.isWaitingForNext) {
+                if (state.lastAnswerCorrect) {
+                    feedbackHTML = `
+                        <div class="w-full bg-green-100 border-l-4 border-green-500 text-green-700 p-4 rounded mb-6 flex justify-between items-center pop-in">
+                            <div><strong>Correct!</strong> Great job, ${state.playerName}! 🎉</div>
+                            <button onclick="nextQuestion()" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-6 rounded-lg btn-hover">Continue</button>
+                        </div>
+                    `;
+                } else {
+                    feedbackHTML = `
+                        <div class="w-full bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded mb-6 flex flex-col md:flex-row justify-between items-center pop-in gap-4">
+                            <div><strong>Oops!</strong> That's not quite right. Don't worry, you'll get another try later! 🔄</div>
+                            <button onclick="nextQuestion()" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-6 rounded-lg btn-hover whitespace-nowrap">Next Question</button>
+                        </div>
+                    `;
+                }
+            }
+
+            appContainer.innerHTML = `
+                <div class="h-2 w-full bg-slate-100 absolute top-0 left-0">
+                    <div class="h-full bg-indigo-500 transition-all duration-500" style="width: ${progress}%"></div>
+                </div>
+                <div class="p-8 md:p-12 w-full flex flex-col min-h-[500px]">
+                    <div class="flex justify-between items-center mb-6">
+                        <span class="text-sm font-bold text-slate-400 uppercase tracking-wider">Part ${isGame1 ? '1' : '2'}</span>
+                        <span class="text-sm font-bold text-slate-400 bg-slate-100 py-1 px-3 rounded-full">
+                            Question ${state.currentIndex + 1} of ${state.currentQueue.length}
+                        </span>
+                    </div>
+                    
+                    <div class="flex-grow">
+                        ${headerHTML}
+                        ${optionsHTML}
+                    </div>
+                    
+                    <div id="feedbackContainer" class="w-full">
+                        ${feedbackHTML}
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderEndScreen() {
+            const isPerfect = state.mistakesCount === 0;
+            
+            let badgeIcon, badgeTitle, badgeColor, badgeDesc;
+            
+            if (isPerfect) {
+                badgeIcon = "🏆";
+                badgeTitle = "Perfect Master of Vertebrates";
+                badgeColor = "text-yellow-500";
+                badgeDesc = `Incredible job! You answered every question flawlessly on the first try. You truly are a science superstar!`;
+            } else {
+                badgeIcon = "🏅";
+                badgeTitle = "Vertebrates Explorer";
+                badgeColor = "text-slate-700";
+                badgeDesc = `Great effort! You completed both challenges and learned a lot about animals. You made ${state.mistakesCount} mistake(s), but you persevered and got them all right in the end!`;
+            }
+
+            appContainer.innerHTML = `
+                <div class="p-8 md:p-12 flex flex-col items-center justify-center text-center h-full w-full min-h-[500px] pop-in">
+                    
+                    <div class="mb-8 p-8 rounded-full ${isPerfect ? 'bg-yellow-100 badge-glow' : 'bg-slate-100'} border-4 ${isPerfect ? 'border-yellow-400' : 'border-slate-300'} inline-block relative">
+                        <div class="text-8xl">${badgeIcon}</div>
+                    </div>
+                    
+                    <h2 class="text-3xl md:text-4xl ${badgeColor} mb-2 title-font">${badgeTitle}</h2>
+                    <h3 class="text-2xl font-bold text-indigo-600 mb-6">${state.playerName}</h3>
+                    
+                    <p class="text-lg text-slate-600 mb-10 max-w-md leading-relaxed">
+                        ${badgeDesc}
+                    </p>
+                    
+                    <button onclick="resetGame()" class="bg-indigo-500 hover:bg-indigo-600 text-white title-font text-xl py-3 px-8 rounded-xl btn-hover shadow-lg shadow-indigo-200">
+                        Play Again 🔄
+                    </button>
+                </div>
+            `;
+        }
+
+        // --- LOGIC FUNCTIONS ---
+        function startGame() {
+            const nameInput = document.getElementById('playerName');
+            const name = nameInput.value.trim();
+            if(name === "") {
+                nameInput.classList.add('shake-animation', 'border-red-500');
+                setTimeout(() => nameInput.classList.remove('shake-animation', 'border-red-500'), 500);
+                return;
+            }
+            state.playerName = name;
+            state.phase = 'GAME1_INTRO';
+            render();
+        }
+
+        function startPhase1() {
+            state.phase = 'GAME1';
+            // Deep copy to prevent modifying original data
+            state.currentQueue = JSON.parse(JSON.stringify(game1Questions));
+            state.currentIndex = 0;
+            state.isWaitingForNext = false;
+            render();
+        }
+
+        function startPhase2() {
+            state.phase = 'GAME2';
+            state.currentQueue = JSON.parse(JSON.stringify(game2Questions));
+            state.currentIndex = 0;
+            state.isWaitingForNext = false;
+            render();
+        }
+
+        function handleAnswer(selectedIndex) {
+            if (state.isWaitingForNext) return;
+            
+            state.isWaitingForNext = true;
+            state.lastSelectedOption = selectedIndex;
+            const currentQ = state.currentQueue[state.currentIndex];
+            
+            if (selectedIndex === currentQ.correctIndex) {
+                state.lastAnswerCorrect = true;
+            } else {
+                state.lastAnswerCorrect = false;
+                state.mistakesCount++;
+                
+                // Randomly re-insert the missed question into the remaining queue
+                // so they get a second chance later.
+                const remainingLength = state.currentQueue.length - (state.currentIndex + 1);
+                
+                if (remainingLength > 0) {
+                    // Pick a random spot in the remaining questions
+                    const insertIndex = state.currentIndex + 1 + Math.floor(Math.random() * (remainingLength + 1));
+                    state.currentQueue.splice(insertIndex, 0, JSON.parse(JSON.stringify(currentQ)));
+                } else {
+                    // If it's the very last question, just push it to the end
+                    state.currentQueue.push(JSON.parse(JSON.stringify(currentQ)));
+                }
+            }
+            
+            render();
+        }
+
+        function nextQuestion() {
+            state.currentIndex++;
+            state.isWaitingForNext = false;
+            
+            if (state.currentIndex < state.currentQueue.length) {
+                render();
+            } else {
+                // Phase complete
+                if (state.phase === 'GAME1') {
+                    state.phase = 'GAME2_INTRO';
+                } else if (state.phase === 'GAME2') {
+                    state.phase = 'END';
+                }
+                render();
+            }
+        }
+
+        function resetGame() {
+            state = {
+                playerName: "",
+                mistakesCount: 0,
+                phase: 'START',
+                currentQueue: [],
+                currentIndex: 0,
+                isWaitingForNext: false,
+                lastAnswerCorrect: null
+            };
+            render();
+        }
+
+        // Initialize the app
+        render();
+
+    </script>
+</body>
+</html>
